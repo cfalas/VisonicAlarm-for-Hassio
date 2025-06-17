@@ -1,44 +1,46 @@
 """
 Interfaces with the Visonic Alarm control panel.
 """
+
 import logging
 from time import sleep
 from datetime import timedelta
 
 import homeassistant.components.alarm_control_panel as alarm
+import alarm.AlarmControlPanelState as AlarmControlPanelState
 import homeassistant.components.persistent_notification as pn
-from homeassistant.const import (STATE_ALARM_ARMED_AWAY, STATE_ALARM_ARMED_HOME,
-                                 STATE_ALARM_DISARMED, STATE_UNKNOWN,
-                                 STATE_ALARM_ARMING, STATE_ALARM_PENDING, STATE_ALARM_TRIGGERED )
-from homeassistant.const import (EVENT_STATE_CHANGED)
-from homeassistant.const import (ATTR_CODE_FORMAT)
+from homeassistant.const import (
+    STATE_UNKNOWN,
+)
+from homeassistant.const import EVENT_STATE_CHANGED
+from homeassistant.const import ATTR_CODE_FORMAT
 from homeassistant.components.alarm_control_panel.const import (
     SUPPORT_ALARM_ARM_AWAY,
-    SUPPORT_ALARM_ARM_HOME
+    SUPPORT_ALARM_ARM_HOME,
 )
 from . import HUB as hub
-from . import (CONF_USER_CODE, CONF_EVENT_HOUR_OFFSET, CONF_NO_PIN_REQUIRED)
+from . import CONF_USER_CODE, CONF_EVENT_HOUR_OFFSET, CONF_NO_PIN_REQUIRED
 
-SUPPORT_VISONIC = (SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY)
+SUPPORT_VISONIC = SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY
 
 _LOGGER = logging.getLogger(__name__)
 
-ATTR_SYSTEM_SERIAL_NUMBER = 'serial_number'
-ATTR_SYSTEM_MODEL = 'model'
-ATTR_SYSTEM_READY = 'ready'
-ATTR_SYSTEM_CONNECTED = 'connected'
-ATTR_SYSTEM_SESSION_TOKEN = 'session_token'
-ATTR_SYSTEM_LAST_UPDATE = 'last_update'
-ATTR_CODE_FORMAT = 'code_format'
-ATTR_CHANGED_BY = 'changed_by'
-ATTR_CHANGED_TIMESTAMP = 'changed_timestamp'
-ATTR_ALARMS = 'alarm'
+ATTR_SYSTEM_SERIAL_NUMBER = "serial_number"
+ATTR_SYSTEM_MODEL = "model"
+ATTR_SYSTEM_READY = "ready"
+ATTR_SYSTEM_CONNECTED = "connected"
+ATTR_SYSTEM_SESSION_TOKEN = "session_token"
+ATTR_SYSTEM_LAST_UPDATE = "last_update"
+ATTR_CODE_FORMAT = "code_format"
+ATTR_CHANGED_BY = "changed_by"
+ATTR_CHANGED_TIMESTAMP = "changed_timestamp"
+ATTR_ALARMS = "alarm"
 
 SCAN_INTERVAL = timedelta(seconds=10)
 
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
-    """ Set up the Visonic Alarm platform. """
+    """Set up the Visonic Alarm platform."""
     hub.update()
     visonic_alarm = VisonicAlarm(hass)
     add_devices([visonic_alarm])
@@ -47,31 +49,36 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     # We will only fetch the events from the API once the arm state has changed
     # because it is quite a lot of data.
     def arm_event_listener(event):
-        entity_id = event.data.get('entity_id')
-        old_state = event.data.get('old_state')
-        new_state = event.data.get('new_state')
+        entity_id = event.data.get("entity_id")
+        old_state = event.data.get("old_state")
+        new_state = event.data.get("new_state")
 
-        if new_state is None or new_state.state in (STATE_UNKNOWN, ''):
+        if new_state is None or new_state.state in (STATE_UNKNOWN, ""):
             return None
 
-        if entity_id == 'alarm_control_panel.visonic_alarm' and \
-                old_state.state is not new_state.state:
+        if (
+            entity_id == "alarm_control_panel.visonic_alarm"
+            and old_state.state is not new_state.state
+        ):
             state = new_state.state
-            if state == 'armed_home' or state == 'armed_away' or \
-                    state == 'Disarmed':
+            if state == "armed_home" or state == "armed_away" or state == "Disarmed":
                 last_event = hub.alarm.get_last_event(
-                    timestamp_hour_offset=visonic_alarm.event_hour_offset)
-                visonic_alarm.update_last_event(last_event['user'],
-                                                last_event['timestamp'])
+                    timestamp_hour_offset=visonic_alarm.event_hour_offset
+                )
+                visonic_alarm.update_last_event(
+                    last_event["user"], last_event["timestamp"]
+                )
 
     hass.bus.listen(EVENT_STATE_CHANGED, arm_event_listener)
 
 
 class VisonicAlarm(alarm.AlarmControlPanelEntity):
-    """ Representation of a Visonic Alarm control panel. """
+    """Representation of a Visonic Alarm control panel."""
+
     _attr_code_arm_required = False
+
     def __init__(self, hass):
-        """ Initialize the Visonic Alarm panel. """
+        """Initialize the Visonic Alarm panel."""
         self._hass = hass
         self._state = STATE_UNKNOWN
         self._code = hub.config.get(CONF_USER_CODE)
@@ -82,12 +89,12 @@ class VisonicAlarm(alarm.AlarmControlPanelEntity):
 
     @property
     def name(self):
-        """ Return the name of the device. """
-        return 'Visonic Alarm'
+        """Return the name of the device."""
+        return "Visonic Alarm"
 
     @property
     def state_attributes(self):
-        """ Return the state attributes of the alarm system. """
+        """Return the state attributes of the alarm system."""
         return {
             ATTR_SYSTEM_SERIAL_NUMBER: hub.alarm.serial_number,
             ATTR_SYSTEM_MODEL: hub.alarm.model,
@@ -103,67 +110,67 @@ class VisonicAlarm(alarm.AlarmControlPanelEntity):
 
     @property
     def icon(self):
-        """ Return icon """
-        if self._state == STATE_ALARM_ARMED_AWAY:
-            return 'mdi:shield-lock'
-        elif self._state == STATE_ALARM_ARMED_HOME:
-            return 'mdi:shield-home'
-        elif self._state == STATE_ALARM_DISARMED:
-            return 'mdi:shield-check'
-        elif self._state == STATE_ALARM_ARMING:
-            return 'mdi:shield-outline'
+        """Return icon"""
+        if self._state == AlarmControlPanelState.STATE_ALARM_ARMED_AWAY:
+            return "mdi:shield-lock"
+        elif self._state == AlarmControlPanelState.STATE_ALARM_ARMED_HOME:
+            return "mdi:shield-home"
+        elif self._state == AlarmControlPanelState.STATE_ALARM_DISARMED:
+            return "mdi:shield-check"
+        elif self._state == AlarmControlPanelState.STATE_ALARM_ARMING:
+            return "mdi:shield-outline"
         else:
-            return 'hass:bell-ring'
+            return "hass:bell-ring"
 
     @property
     def state(self):
-        """ Return the state of the device. """
+        """Return the state of the device."""
         return self._state
 
     @property
     def code_format(self):
-        """ Return one or more digits/characters. """
+        """Return one or more digits/characters."""
         if self._no_pin_required:
             return None
         else:
-            return 'Number'
+            return "Number"
 
     @property
     def changed_by(self):
-        """ Return the last change triggered by. """
+        """Return the last change triggered by."""
         return self._changed_by
 
     @property
     def changed_timestamp(self):
-        """ Return the last change triggered by. """
+        """Return the last change triggered by."""
         return self._changed_timestamp
 
     @property
     def event_hour_offset(self):
-        """ Return the hour offset to be used in the event log. """
+        """Return the hour offset to be used in the event log."""
         return self._event_hour_offset
 
     def update_last_event(self, user, timestamp):
-        """ Update with the user and timestamp of the last state change. """
+        """Update with the user and timestamp of the last state change."""
         self._changed_by = user
         self._changed_timestamp = timestamp
 
     def update(self):
-        """ Update alarm status. """
+        """Update alarm status."""
         hub.update()
         status = hub.alarm.state
-        if status == 'AWAY':
-            self._state = STATE_ALARM_ARMED_AWAY
-        elif status == 'HOME':
-            self._state = STATE_ALARM_ARMED_HOME
-        elif status == 'DISARM':
-            self._state = STATE_ALARM_DISARMED
-        elif status == 'ARMING':
-            self._state = STATE_ALARM_ARMING
-        elif status == 'ENTRYDELAY':
-            self._state = STATE_ALARM_PENDING
-        elif status == 'ALARM':
-            self._state = STATE_ALARM_TRIGGERED
+        if status == "AWAY":
+            self._state = AlarmControlPanelState.STATE_ALARM_ARMED_AWAY
+        elif status == "HOME":
+            self._state = AlarmControlPanelState.STATE_ALARM_ARMED_HOME
+        elif status == "DISARM":
+            self._state = AlarmControlPanelState.STATE_ALARM_DISARMED
+        elif status == "ARMING":
+            self._state = AlarmControlPanelState.STATE_ALARM_ARMING
+        elif status == "ENTRYDELAY":
+            self._state = AlarmControlPanelState.STATE_ALARM_PENDING
+        elif status == "ALARM":
+            self._state = AlarmControlPanelState.STATE_ALARM_TRIGGERED
         else:
             self._state = status
 
@@ -173,21 +180,27 @@ class VisonicAlarm(alarm.AlarmControlPanelEntity):
         return SUPPORT_VISONIC
 
     def alarm_disarm(self, code=None):
-        """ Send disarm command. """
+        """Send disarm command."""
         if self._no_pin_required == False:
             if code != self._code:
-                pn.create(self._hass, 'You entered the wrong disarm code.', title='Disarm Failed')
+                pn.create(
+                    self._hass,
+                    "You entered the wrong disarm code.",
+                    title="Disarm Failed",
+                )
                 return
-            
+
         hub.alarm.disarm()
         sleep(1)
         self.update()
 
     def alarm_arm_home(self, code=None):
-        """ Send arm home command. """
+        """Send arm home command."""
         if self._no_pin_required == False:
             if code != self._code:
-                pn.create(self._hass, 'You entered the wrong arm code.', title='Arm Failed')
+                pn.create(
+                    self._hass, "You entered the wrong arm code.", title="Arm Failed"
+                )
                 return
 
         if hub.alarm.ready:
@@ -196,23 +209,31 @@ class VisonicAlarm(alarm.AlarmControlPanelEntity):
             sleep(1)
             self.update()
         else:
-            pn.create(self._hass, 'The alarm system is not in a ready state. '
-                                  'Maybe there are doors or windows open?',
-                      title='Arm Failed')
+            pn.create(
+                self._hass,
+                "The alarm system is not in a ready state. "
+                "Maybe there are doors or windows open?",
+                title="Arm Failed",
+            )
 
     def alarm_arm_away(self, code=None):
-        """ Send arm away command. """
+        """Send arm away command."""
         if self._no_pin_required == False:
             if code != self._code:
-                pn.create(self._hass, 'You entered the wrong arm code.', title='Unable to Arm')
+                pn.create(
+                    self._hass, "You entered the wrong arm code.", title="Unable to Arm"
+                )
                 return
-            
+
         if hub.alarm.ready:
             hub.alarm.arm_away()
 
             sleep(1)
             self.update()
         else:
-            pn.create(self._hass, 'The alarm system is not in a ready state. '
-                                  'Maybe there are doors or windows open?',
-                      title='Unable to Arm')
+            pn.create(
+                self._hass,
+                "The alarm system is not in a ready state. "
+                "Maybe there are doors or windows open?",
+                title="Unable to Arm",
+            )
