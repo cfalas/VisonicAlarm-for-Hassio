@@ -7,7 +7,10 @@ from time import sleep
 from datetime import timedelta
 
 import homeassistant.components.alarm_control_panel as alarm
-import homeassistant.components.alarm_control_panel.AlarmControlPanelState as AlarmControlPanelState
+from homeassistant.components.alarm_control_panel import (
+    AlarmControlPanelEntity,
+    AlarmControlPanelState,
+)
 import homeassistant.components.persistent_notification as pn
 from homeassistant.const import (
     STATE_UNKNOWN,
@@ -72,7 +75,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     hass.bus.listen(EVENT_STATE_CHANGED, arm_event_listener)
 
 
-class VisonicAlarm(alarm.AlarmControlPanelEntity):
+class VisonicAlarm(AlarmControlPanelEntity):
     """Representation of a Visonic Alarm control panel."""
 
     _attr_code_arm_required = False
