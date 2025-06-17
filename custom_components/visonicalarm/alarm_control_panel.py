@@ -112,13 +112,13 @@ class VisonicAlarm(AlarmControlPanelEntity):
     @property
     def icon(self):
         """Return icon"""
-        if self._state == AlarmControlPanelState.STATE_ALARM_ARMED_AWAY:
+        if self._state == AlarmControlPanelState.ARMED_AWAY:
             return "mdi:shield-lock"
-        elif self._state == AlarmControlPanelState.STATE_ALARM_ARMED_HOME:
+        elif self._state == AlarmControlPanelState.ARMED_HOME:
             return "mdi:shield-home"
-        elif self._state == AlarmControlPanelState.STATE_ALARM_DISARMED:
+        elif self._state == AlarmControlPanelState.DISARMED:
             return "mdi:shield-check"
-        elif self._state == AlarmControlPanelState.STATE_ALARM_ARMING:
+        elif self._state == AlarmControlPanelState.ARMING:
             return "mdi:shield-outline"
         else:
             return "hass:bell-ring"
@@ -161,17 +161,17 @@ class VisonicAlarm(AlarmControlPanelEntity):
         hub.update()
         status = hub.alarm.state
         if status == "AWAY":
-            self._state = AlarmControlPanelState.STATE_ALARM_ARMED_AWAY
+            self._state = AlarmControlPanelState.ARMED_AWAY
         elif status == "HOME":
-            self._state = AlarmControlPanelState.STATE_ALARM_ARMED_HOME
+            self._state = AlarmControlPanelState.ARMED_HOME
         elif status == "DISARM":
-            self._state = AlarmControlPanelState.STATE_ALARM_DISARMED
+            self._state = AlarmControlPanelState.DISARMED
         elif status == "ARMING":
-            self._state = AlarmControlPanelState.STATE_ALARM_ARMING
+            self._state = AlarmControlPanelState.ARMING
         elif status == "ENTRYDELAY":
-            self._state = AlarmControlPanelState.STATE_ALARM_PENDING
+            self._state = AlarmControlPanelState.PENDING
         elif status == "ALARM":
-            self._state = AlarmControlPanelState.STATE_ALARM_TRIGGERED
+            self._state = AlarmControlPanelState.TRIGGERED
         else:
             self._state = status
 
