@@ -7,7 +7,7 @@ from time import sleep
 from datetime import timedelta
 
 import homeassistant.components.alarm_control_panel as alarm
-import alarm.AlarmControlPanelState as AlarmControlPanelState
+import homeassistant.components.alarm_control_panel.AlarmControlPanelState as AlarmControlPanelState
 import homeassistant.components.persistent_notification as pn
 from homeassistant.const import (
     STATE_UNKNOWN,
