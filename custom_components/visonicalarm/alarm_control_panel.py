@@ -6,10 +6,10 @@ import logging
 from time import sleep
 from datetime import timedelta
 
-import homeassistant.components.alarm_control_panel as alarm
 from homeassistant.components.alarm_control_panel import (
     AlarmControlPanelEntity,
     AlarmControlPanelState,
+    AlarmControlPanelEntityFeature,
 )
 import homeassistant.components.persistent_notification as pn
 from homeassistant.const import (
@@ -17,14 +17,12 @@ from homeassistant.const import (
 )
 from homeassistant.const import EVENT_STATE_CHANGED
 from homeassistant.const import ATTR_CODE_FORMAT
-from homeassistant.components.alarm_control_panel.const import (
-    SUPPORT_ALARM_ARM_AWAY,
-    SUPPORT_ALARM_ARM_HOME,
-)
 from . import HUB as hub
 from . import CONF_USER_CODE, CONF_EVENT_HOUR_OFFSET, CONF_NO_PIN_REQUIRED
 
-SUPPORT_VISONIC = SUPPORT_ALARM_ARM_HOME | SUPPORT_ALARM_ARM_AWAY
+SUPPORT_VISONIC = (
+    AlarmControlPanelEntityFeature.ARM_HOME | AlarmControlPanelEntityFeature.ARM_AWAY
+)
 
 _LOGGER = logging.getLogger(__name__)
 
